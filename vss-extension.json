@@ -1,0 +1,55 @@
+{
+    "manifestVersion": 1,
+    "id": "vscode-tunnel-task",
+    "publisher": "tabs-not-spaces",
+    "version": "1.0.0",
+    "name": "VS Code Tunnel",
+    "description": "Azure DevOps Pipeline Task to download VS Code CLI and start a VS Code tunnel for live debugging of Azure Pipeline jobs.",
+    "public": true,
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "links": {
+        "repository": {
+            "uri": "https://github.com/tabs-not-spaces/VSCode-ADOTask"
+        },
+        "issues": {
+            "uri": "https://github.com/tabs-not-spaces/VSCode-ADOTask/issues"
+        }
+    },
+    "branding": {
+        "color": "#007ACC",
+        "theme": "dark"
+    },
+    "files": [
+        {
+            "path": "task.json",
+            "addressable": true
+        },
+        {
+            "path": "dist",
+            "addressable": true
+        },
+        {
+            "path": "README.md",
+            "addressable": true
+        }
+    ],
+    "contributions": [
+        {
+            "id": "VSCodeTunnel",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "."
+            }
+        }
+    ]
+}
