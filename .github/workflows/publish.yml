@@ -90,10 +90,3 @@ jobs:
           name: vsix-package
           path: out/*.vsix
           if-no-files-found: error
-
-      - name: Publish extension
-        run: |
-          tfx extension publish \
-            --publisher "${{ secrets.AZURE_DEVOPS_MARKETPLACE_ID }}" \
-            --manifest-globs vss-extension.json \
-            --token "${{ secrets.AZURE_DEVOPS_MARKETPLACE_TOKEN }}"
