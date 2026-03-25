@@ -88,8 +88,12 @@ async function main() {
                 }
 
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                  const first = parsed[0] as Record<string, unknown>;
-                  resolve(String(first?.version || first?.name || '') || '');
+                  const first = parsed[0] as Record<string, unknown> | string;
+                  if (typeof first === 'string') {
+                    resolve(first);
+                  } else {
+                    resolve(String(first?.version || first?.name || '') || '');
+                  }
                 } else if (typeof parsed === 'object' && parsed !== null) {
                   const obj = parsed as Record<string, unknown>;
                   resolve(String(obj.version || obj.name || '') || '');
@@ -117,29 +121,31 @@ async function main() {
     task.debug('Checking stable releases API for version...');
     const stableVersion = await fetchStableReleaseVersion(releasesApi);
     if (!stableVersion) {
-      throw new Error(`Failed to determine stable VS Code version from ${releasesApi}`);
+      task.warning(`Could not determine stable VS Code version from ${releasesApi}; skipping tool cache and downloading directly.`);
+    } else {
+      task.debug(`Stable VS Code version: ${stableVersion}`);
     }
-
-    task.debug(`Stable VS Code version: ${stableVersion}`);
 
     // Create extraction directory
     if (!existsSync(extractPath)) {
       mkdirSync(extractPath, { recursive: true });
     }
 
-    // Check the agent tool cache for a previously downloaded VS Code CLI
+    // Check the agent tool cache for a previously downloaded VS Code CLI (only when we have a version)
     let cliPath = '';
-    try {
-      task.debug(`Checking agent tool cache for VS Code CLI ${cliToolCacheName} version ${stableVersion}...`);
-      const found = toolLib.findLocalTool(cliToolCacheName, stableVersion);
-      if (found) {
-        cliPath = found;
-        task.debug(`Found cached VS Code CLI ${stableVersion} in tool cache: ${cliPath}`);
-      } else {
-        task.debug(`No cached VS Code CLI found for version ${stableVersion}.`);
+    if (stableVersion) {
+      try {
+        task.debug(`Checking agent tool cache for VS Code CLI ${cliToolCacheName} version ${stableVersion}...`);
+        const found = toolLib.findLocalTool(cliToolCacheName, stableVersion);
+        if (found) {
+          cliPath = found;
+          task.debug(`Found cached VS Code CLI ${stableVersion} in tool cache: ${cliPath}`);
+        } else {
+          task.debug(`No cached VS Code CLI found for version ${stableVersion}.`);
+        }
+      } catch (err) {
+        task.warning(`Tool cache check failed: ${err}`);
       }
-    } catch (err) {
-      task.warning(`Tool cache check failed: ${err}`);
     }
 
     if (!cliPath) {
@@ -166,11 +172,14 @@ async function main() {
         chmodSync(extractCliPath, 0o755);
       }
 
-      task.debug(`Caching VS Code CLI ${extractCliPath} as ${cliToolCacheName} version ${stableVersion}...`);
-      const cacheDir = await toolLib.cacheFile(extractCliPath, cliName, cliToolCacheName, stableVersion);
-      task.debug(`Cached VS Code CLI to: ${cacheDir}`);
-
-      cliPath = join(cacheDir, cliName);
+      if (stableVersion) {
+        task.debug(`Caching VS Code CLI ${extractCliPath} as ${cliToolCacheName} version ${stableVersion}...`);
+        const cacheDir = await toolLib.cacheFile(extractCliPath, cliName, cliToolCacheName, stableVersion);
+        task.debug(`Cached VS Code CLI to: ${cacheDir}`);
+        cliPath = join(cacheDir, cliName);
+      } else {
+        cliPath = extractCliPath;
+      }
     }
 
     if (!cliPath) {
@@ -199,14 +208,53 @@ async function main() {
       mkdirSync(cliDataDir, { recursive: true });
     }
 
-    // Start tunnel — authenticate via Microsoft account (Azure AD) for ADO environments
+    // Step 1: Authenticate with Microsoft provider (device code flow)
+    // This shows the user a URL to open so they can complete login.
+    task.debug('Running: code tunnel user login --provider microsoft');
+    await new Promise<void>((resolve, reject) => {
+      const loginArgs = [
+        'tunnel', 'user', 'login',
+        '--provider', 'microsoft',
+        '--cli-data-dir', cliDataDir
+      ];
+      const loginProc = spawn(cliPath, loginArgs, { stdio: 'pipe' });
+
+      const forwardStdout = (chunk: Buffer) => {
+        const text = String(chunk);
+        const lines = text.split(/\r?\n/).filter(l => l.length > 0);
+        for (const line of lines) {
+          console.log(line);
+        }
+      };
+
+      const forwardStderr = (chunk: Buffer) => {
+        const text = String(chunk);
+        const lines = text.split(/\r?\n/).filter(l => l.length > 0);
+        for (const line of lines) {
+          task.warning(line);
+        }
+      };
+
+      if (loginProc.stdout) { loginProc.stdout.on('data', forwardStdout); }
+      if (loginProc.stderr) { loginProc.stderr.on('data', forwardStderr); }
+
+      loginProc.on('error', err => reject(err));
+      loginProc.on('close', (code) => {
+        if (code === 0) {
+          task.debug('Login completed successfully');
+          resolve();
+        } else {
+          reject(new Error(`code tunnel user login exited with code ${code}`));
+        }
+      });
+    });
+
+    // Step 2: Start tunnel
     task.debug('Starting VS Code tunnel...');
     const tunnelArgs = [
       'tunnel',
       '--accept-server-license-terms',
       '--verbose',
-      '--provider',
-      'microsoft',
       '--cli-data-dir',
       cliDataDir
     ];
@@ -287,7 +335,7 @@ async function main() {
         const text = String(chunk);
         const lines = text.split(/\r?\n/).filter(l => l.length > 0);
         for (const line of lines) {
-          task.debug(line);
+          task.warning(line);
         }
       });
     }
