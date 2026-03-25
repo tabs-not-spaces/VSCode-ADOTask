@@ -1,0 +1,64 @@
+# Pipeline: Test VS Code Tunnel Extension (without public marketplace publish)
+#
+# Builds and packages the extension as a VSIX, then optionally installs it
+# privately into an Azure DevOps organization so it can be exercised in a
+# real pipeline without ever appearing on the public marketplace.
+#
+# Required pipeline variable (set in the pipeline UI, marked secret):
+#   MARKETPLACE_TOKEN  – Personal Access Token with "Marketplace > Publish" scope.
+#                        Only needed when shareWithOrg is supplied.
+#
+# Usage
+#   1. Queue the pipeline manually.
+#   2. Leave shareWithOrg blank to only build and download the VSIX artifact.
+#   3. Supply an org name (e.g. "myorg") to privately publish the extension and
+#      install it into that organization so the VSCodeTunnel@1 task becomes
+#      available for use in pipelines inside that org.
+
+trigger: none
+
+parameters:
+  - name: shareWithOrg
+    displayName: 'Azure DevOps org to share the private extension with (leave blank to skip)'
+    type: string
+    default: ''
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: NodeTool@0
+    displayName: 'Use Node.js 20'
+    inputs:
+      versionSpec: '20.x'
+
+  - script: |
+      corepack enable
+      pnpm install --frozen-lockfile
+    displayName: 'Install dependencies'
+
+  - script: pnpm run build
+    displayName: 'Build task (esbuild)'
+
+  - script: npm install -g tfx-cli
+    displayName: 'Install tfx-cli'
+
+  - script: |
+      tfx extension create \
+        --manifest-globs vss-extension.json \
+        --output-path "$(Build.ArtifactStagingDirectory)"
+    displayName: 'Package extension as VSIX'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish VSIX as pipeline artifact'
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: vsix-package
+
+  - script: |
+      tfx extension publish \
+        --vsix "$(Build.ArtifactStagingDirectory)"/*.vsix \
+        --token "$(MARKETPLACE_TOKEN)" \
+        --share-with "${{ parameters.shareWithOrg }}"
+    displayName: 'Publish extension privately and share with org'
+    condition: ne('${{ parameters.shareWithOrg }}', '')
