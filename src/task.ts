@@ -208,14 +208,12 @@ async function main() {
       mkdirSync(cliDataDir, { recursive: true });
     }
 
-    // Start tunnel — authenticate via Microsoft account (Azure AD) for ADO environments
+    // Start tunnel
     task.debug('Starting VS Code tunnel...');
     const tunnelArgs = [
       'tunnel',
       '--accept-server-license-terms',
       '--verbose',
-      '--provider',
-      'microsoft',
       '--cli-data-dir',
       cliDataDir
     ];
@@ -296,7 +294,7 @@ async function main() {
         const text = String(chunk);
         const lines = text.split(/\r?\n/).filter(l => l.length > 0);
         for (const line of lines) {
-          task.debug(line);
+          task.warning(line);
         }
       });
     }
