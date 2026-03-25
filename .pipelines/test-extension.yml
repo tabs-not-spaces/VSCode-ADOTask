@@ -1,27 +1,32 @@
-# Pipeline: Test VS Code Tunnel Extension (without public marketplace publish)
+# Pipeline: Run VS Code Tunnel task directly (no packaging or marketplace publish)
 #
-# Builds and packages the extension as a VSIX, then optionally installs it
-# privately into an Azure DevOps organization so it can be exercised in a
-# real pipeline without ever appearing on the public marketplace.
+# Builds dist/task.js from source and executes it with `node` so you can
+# verify the task logic works end-to-end inside a real Azure Pipelines job.
 #
-# Required pipeline variable (set in the pipeline UI, marked secret):
-#   MARKETPLACE_TOKEN  – Personal Access Token with "Marketplace > Publish" scope.
-#                        Only needed when shareWithOrg is supplied.
+# azure-pipelines-task-lib reads task inputs from INPUT_<UPPERCASENAME>
+# environment variables, so no extension install is required.
 #
-# Usage
-#   1. Queue the pipeline manually.
-#   2. Leave shareWithOrg blank to only build and download the VSIX artifact.
-#   3. Supply an org name (e.g. "myorg") to privately publish the extension and
-#      install it into that organization so the VSCodeTunnel@1 task becomes
-#      available for use in pipelines inside that org.
+# Customise the env block under "Run task" to change input values.
 
 trigger: none
 
 parameters:
-  - name: shareWithOrg
-    displayName: 'Azure DevOps org to share the private extension with (leave blank to skip)'
+  - name: tunnelName
+    displayName: 'Tunnel name (max 20 chars)'
     type: string
-    default: ''
+    default: 'ado-pipeline-tunnel'
+  - name: connectionTimeout
+    displayName: 'Connection timeout (minutes)'
+    type: number
+    default: 5
+  - name: sessionTimeout
+    displayName: 'Session timeout (minutes)'
+    type: number
+    default: 60
+  - name: noCacheCliAuth
+    displayName: 'Disable auth caching'
+    type: boolean
+    default: false
 
 pool:
   vmImage: ubuntu-latest
@@ -38,27 +43,13 @@ steps:
     displayName: 'Install dependencies'
 
   - script: pnpm run build
-    displayName: 'Build task (esbuild)'
+    displayName: 'Build task (esbuild → dist/task.js)'
 
-  - script: npm install -g tfx-cli
-    displayName: 'Install tfx-cli'
-
-  - script: |
-      tfx extension create \
-        --manifest-globs vss-extension.json \
-        --output-path "$(Build.ArtifactStagingDirectory)"
-    displayName: 'Package extension as VSIX'
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish VSIX as pipeline artifact'
-    inputs:
-      pathToPublish: '$(Build.ArtifactStagingDirectory)'
-      artifactName: vsix-package
-
-  - script: |
-      tfx extension publish \
-        --vsix "$(Build.ArtifactStagingDirectory)"/*.vsix \
-        --token "$(MARKETPLACE_TOKEN)" \
-        --share-with "${{ parameters.shareWithOrg }}"
-    displayName: 'Publish extension privately and share with org'
-    condition: ne('${{ parameters.shareWithOrg }}', '')
+  - script: node dist/task.js
+    displayName: 'Run task'
+    env:
+      # azure-pipelines-task-lib picks up inputs from INPUT_<UPPERCASENAME>
+      INPUT_TUNNELNAME: ${{ parameters.tunnelName }}
+      INPUT_CONNECTIONTIMEOUT: ${{ parameters.connectionTimeout }}
+      INPUT_SESSIONTIMEOUT: ${{ parameters.sessionTimeout }}
+      INPUT_NOCACHECLIAUTH: ${{ parameters.noCacheCliAuth }}
