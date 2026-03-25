@@ -31,6 +31,9 @@
             "path": "overview.md"
         }
     },
+    "icons": {
+        "default": "vscode-task-logo.png"
+    },
     "files": [
         {
             "path": "task.json",
@@ -42,6 +45,10 @@
         },
         {
             "path": "overview.md",
+            "addressable": true
+        },
+        {
+            "path": "vscode-task-logo.png",
             "addressable": true
         }
     ],
