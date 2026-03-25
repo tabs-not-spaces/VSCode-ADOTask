@@ -208,7 +208,48 @@ async function main() {
       mkdirSync(cliDataDir, { recursive: true });
     }
 
-    // Start tunnel
+    // Step 1: Authenticate with Microsoft provider (device code flow)
+    // This shows the user a URL to open so they can complete login.
+    task.debug('Running: code tunnel user login --provider microsoft');
+    await new Promise<void>((resolve, reject) => {
+      const loginArgs = [
+        'tunnel', 'user', 'login',
+        '--provider', 'microsoft',
+        '--cli-data-dir', cliDataDir
+      ];
+      const loginProc = spawn(cliPath, loginArgs, { stdio: 'pipe' });
+
+      const forwardStdout = (chunk: Buffer) => {
+        const text = String(chunk);
+        const lines = text.split(/\r?\n/).filter(l => l.length > 0);
+        for (const line of lines) {
+          console.log(line);
+        }
+      };
+
+      const forwardStderr = (chunk: Buffer) => {
+        const text = String(chunk);
+        const lines = text.split(/\r?\n/).filter(l => l.length > 0);
+        for (const line of lines) {
+          task.warning(line);
+        }
+      };
+
+      if (loginProc.stdout) { loginProc.stdout.on('data', forwardStdout); }
+      if (loginProc.stderr) { loginProc.stderr.on('data', forwardStderr); }
+
+      loginProc.on('error', err => reject(err));
+      loginProc.on('close', (code) => {
+        if (code === 0) {
+          task.debug('Login completed successfully');
+          resolve();
+        } else {
+          reject(new Error(`code tunnel user login exited with code ${code}`));
+        }
+      });
+    });
+
+    // Step 2: Start tunnel
     task.debug('Starting VS Code tunnel...');
     const tunnelArgs = [
       'tunnel',
