@@ -121,29 +121,31 @@ async function main() {
     task.debug('Checking stable releases API for version...');
     const stableVersion = await fetchStableReleaseVersion(releasesApi);
     if (!stableVersion) {
-      throw new Error(`Failed to determine stable VS Code version from ${releasesApi}`);
+      task.warning(`Could not determine stable VS Code version from ${releasesApi}; skipping tool cache and downloading directly.`);
+    } else {
+      task.debug(`Stable VS Code version: ${stableVersion}`);
     }
-
-    task.debug(`Stable VS Code version: ${stableVersion}`);
 
     // Create extraction directory
     if (!existsSync(extractPath)) {
       mkdirSync(extractPath, { recursive: true });
     }
 
-    // Check the agent tool cache for a previously downloaded VS Code CLI
+    // Check the agent tool cache for a previously downloaded VS Code CLI (only when we have a version)
     let cliPath = '';
-    try {
-      task.debug(`Checking agent tool cache for VS Code CLI ${cliToolCacheName} version ${stableVersion}...`);
-      const found = toolLib.findLocalTool(cliToolCacheName, stableVersion);
-      if (found) {
-        cliPath = found;
-        task.debug(`Found cached VS Code CLI ${stableVersion} in tool cache: ${cliPath}`);
-      } else {
-        task.debug(`No cached VS Code CLI found for version ${stableVersion}.`);
+    if (stableVersion) {
+      try {
+        task.debug(`Checking agent tool cache for VS Code CLI ${cliToolCacheName} version ${stableVersion}...`);
+        const found = toolLib.findLocalTool(cliToolCacheName, stableVersion);
+        if (found) {
+          cliPath = found;
+          task.debug(`Found cached VS Code CLI ${stableVersion} in tool cache: ${cliPath}`);
+        } else {
+          task.debug(`No cached VS Code CLI found for version ${stableVersion}.`);
+        }
+      } catch (err) {
+        task.warning(`Tool cache check failed: ${err}`);
       }
-    } catch (err) {
-      task.warning(`Tool cache check failed: ${err}`);
     }
 
     if (!cliPath) {
@@ -170,11 +172,14 @@ async function main() {
         chmodSync(extractCliPath, 0o755);
       }
 
-      task.debug(`Caching VS Code CLI ${extractCliPath} as ${cliToolCacheName} version ${stableVersion}...`);
-      const cacheDir = await toolLib.cacheFile(extractCliPath, cliName, cliToolCacheName, stableVersion);
-      task.debug(`Cached VS Code CLI to: ${cacheDir}`);
-
-      cliPath = join(cacheDir, cliName);
+      if (stableVersion) {
+        task.debug(`Caching VS Code CLI ${extractCliPath} as ${cliToolCacheName} version ${stableVersion}...`);
+        const cacheDir = await toolLib.cacheFile(extractCliPath, cliName, cliToolCacheName, stableVersion);
+        task.debug(`Cached VS Code CLI to: ${cacheDir}`);
+        cliPath = join(cacheDir, cliName);
+      } else {
+        cliPath = extractCliPath;
+      }
     }
 
     if (!cliPath) {
