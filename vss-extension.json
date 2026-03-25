@@ -1,6 +1,6 @@
 {
     "manifestVersion": 1,
-    "id": "vscode-tunnel-task",
+    "id": "vscode-tunnel-tool",
     "publisher": "PowersHell",
     "version": "1.0.0",
     "name": "VS Code Tunnel",
