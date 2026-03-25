@@ -26,6 +26,11 @@
         "color": "#007ACC",
         "theme": "dark"
     },
+    "content": {
+        "details": {
+            "path": "overview.md"
+        }
+    },
     "files": [
         {
             "path": "task.json",
@@ -36,7 +41,7 @@
             "addressable": true
         },
         {
-            "path": "README.md",
+            "path": "overview.md",
             "addressable": true
         }
     ],
