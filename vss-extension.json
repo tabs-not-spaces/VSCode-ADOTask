@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
     "id": "vscode-tunnel-task",
-    "publisher": "tabs-not-spaces",
+    "publisher": "PowersHell",
     "version": "1.0.0",
     "name": "VS Code Tunnel",
     "description": "Azure DevOps Pipeline Task to download VS Code CLI and start a VS Code tunnel for live debugging of Azure Pipeline jobs.",
