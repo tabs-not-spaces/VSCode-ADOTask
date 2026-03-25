@@ -50,7 +50,7 @@
       "name": "authProvider",
       "type": "pickList",
       "label": "Auth Provider",
-      "defaultValue": "microsoft",
+      "defaultValue": "github",
       "required": false,
       "helpMarkDown": "The authentication provider to use when logging in to the VS Code tunnel. Choose `microsoft` for Azure AD / Microsoft account (device code flow) or `github` for GitHub OAuth.",
       "options": {

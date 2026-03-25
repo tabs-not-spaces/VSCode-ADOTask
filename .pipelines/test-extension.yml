@@ -30,7 +30,7 @@ parameters:
   - name: authProvider
     displayName: 'Auth provider (microsoft or github)'
     type: string
-    default: 'microsoft'
+    default: 'github'
     values:
       - microsoft
       - github

@@ -20,7 +20,7 @@ steps:
       connectionTimeout: 5               # optional — minutes, default 5
       sessionTimeout: 60                 # optional — minutes, default 60
       noCacheCliAuth: false              # optional — default false
-      authProvider: microsoft            # optional — 'microsoft' (default) or 'github'
+      authProvider: github             # optional — 'github' (default) or 'microsoft'
 ```
 
 On first run, the task will print a link in the pipeline log for device code login.  Open the link, sign in, and then access the VS Code instance via your browser or the VS Code desktop app using **Remote Tunnels: Connect to Tunnel** from the Command Palette.
@@ -48,7 +48,7 @@ On subsequent runs with `noCacheCliAuth: false` (the default), the auth token is
 | `connectionTimeout` | No | `5` | Minutes to wait for an initial connection before terminating. |
 | `sessionTimeout` | No | `60` | Minutes after the first connection before the tunnel is terminated. |
 | `noCacheCliAuth` | No | `false` | Disable caching of tunnel auth tokens on the agent. |
-| `authProvider` | No | `microsoft` | Authentication provider: `microsoft` (Azure AD device code) or `github` (GitHub OAuth). |
+| `authProvider` | No | `github` | Authentication provider: `github` (GitHub OAuth) or `microsoft` (Azure AD device code). |
 
 ---
 

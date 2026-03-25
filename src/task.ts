@@ -189,7 +189,7 @@ async function main() {
     // Create CLI data directory for auth token storage, keyed by the ADO user identity
     const cliDataDir = join(homedir(), 'vscode-cli-data');
     const noCacheCliAuth = task.getBoolInput('noCacheCliAuth', false);
-    const authProvider = (task.getInput('authProvider') || 'microsoft').toLowerCase();
+    const authProvider = (task.getInput('authProvider') || 'github').toLowerCase();
     if (authProvider !== 'microsoft' && authProvider !== 'github') {
       throw new Error(`Invalid authProvider value: "${authProvider}". Must be "microsoft" or "github".`);
     }
