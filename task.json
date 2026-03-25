@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "eb99a296-3964-4fd7-9ba1-7cf83f668af4",
+  "name": "VSCodeTunnel",
+  "friendlyName": "VS Code Tunnel",
+  "description": "Download VS Code CLI and start a VS Code tunnel for live debugging of an Azure Pipeline job.",
+  "helpMarkDown": "See the [README](https://github.com/tabs-not-spaces/VSCode-ADOTask/blob/main/README.md) for full usage instructions.",
+  "category": "Utility",
+  "author": "tabs-not-spaces",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "VS Code Tunnel $(tunnelName)",
+  "inputs": [
+    {
+      "name": "tunnelName",
+      "type": "string",
+      "label": "Tunnel Name",
+      "defaultValue": "ado-pipeline-tunnel",
+      "required": false,
+      "helpMarkDown": "Name for the tunnel. Must be less than 20 characters."
+    },
+    {
+      "name": "connectionTimeout",
+      "type": "string",
+      "label": "Connection Timeout (minutes)",
+      "defaultValue": "5",
+      "required": false,
+      "helpMarkDown": "Connection timeout in minutes. If no connection is detected within this period the task will terminate the tunnel."
+    },
+    {
+      "name": "sessionTimeout",
+      "type": "string",
+      "label": "Session Timeout (minutes)",
+      "defaultValue": "60",
+      "required": false,
+      "helpMarkDown": "Session timeout in minutes. Starts after a connection is detected and will terminate the tunnel when reached."
+    },
+    {
+      "name": "noCacheCliAuth",
+      "type": "boolean",
+      "label": "Disable Auth Caching",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "By default, tunnel auth information is cached on the agent between runs for convenience. Set this to true to disable caching (more secure, but requires device code authentication on every run)."
+    }
+  ],
+  "outputVariables": [
+    {
+      "name": "tunnelUrl",
+      "description": "The URL for accessing the VS Code tunnel."
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "dist/task.js"
+    }
+  }
+}

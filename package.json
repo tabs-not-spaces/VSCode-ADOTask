@@ -1,0 +1,30 @@
+{
+  "name": "vscode-tunnel-ado-task",
+  "version": "1.0.0",
+  "description": "Azure DevOps Pipeline Task to download VS Code CLI and start a code tunnel",
+  "main": "dist/task.js",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "build": "esbuild src/task.ts --outfile=dist/task.js --bundle --format=cjs --platform=node --target=node20",
+    "prepare": "pnpm run build"
+  },
+  "dependencies": {
+    "azure-pipelines-task-lib": "^5.2.8",
+    "azure-pipelines-tool-lib": "^2.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.27.2",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "azure-devops",
+    "azure-pipelines",
+    "vscode",
+    "tunnel",
+    "remote",
+    "cli",
+    "debugging"
+  ]
+}
