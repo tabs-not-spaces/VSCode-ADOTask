@@ -1,4 +1,5 @@
 node_modules/
 dist/
+VSCodeTunnel/dist/
 *.tsbuildinfo
 .pnpm-store/
