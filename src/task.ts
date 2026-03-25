@@ -189,6 +189,10 @@ async function main() {
     // Create CLI data directory for auth token storage, keyed by the ADO user identity
     const cliDataDir = join(homedir(), 'vscode-cli-data');
     const noCacheCliAuth = task.getBoolInput('noCacheCliAuth', false);
+    const authProvider = (task.getInput('authProvider') || 'microsoft').toLowerCase();
+    if (authProvider !== 'microsoft' && authProvider !== 'github') {
+      throw new Error(`Invalid authProvider value: "${authProvider}". Must be "microsoft" or "github".`);
+    }
 
     // ADO identity for scoping the cached auth directory
     const adoUser =
@@ -208,13 +212,13 @@ async function main() {
       mkdirSync(cliDataDir, { recursive: true });
     }
 
-    // Step 1: Authenticate with Microsoft provider (device code flow)
+    // Step 1: Authenticate with the chosen provider (device code flow)
     // This shows the user a URL to open so they can complete login.
-    task.debug('Running: code tunnel user login --provider microsoft');
+    task.debug(`Running: code tunnel user login --provider ${authProvider}`);
     await new Promise<void>((resolve, reject) => {
       const loginArgs = [
         'tunnel', 'user', 'login',
-        '--provider', 'microsoft',
+        '--provider', authProvider,
         '--cli-data-dir', cliDataDir
       ];
       const loginProc = spawn(cliPath, loginArgs, { stdio: 'pipe' });

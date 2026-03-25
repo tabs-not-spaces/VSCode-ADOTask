@@ -45,6 +45,18 @@
       "defaultValue": "false",
       "required": false,
       "helpMarkDown": "By default, tunnel auth information is cached on the agent between runs for convenience. Set this to true to disable caching (more secure, but requires device code authentication on every run)."
+    },
+    {
+      "name": "authProvider",
+      "type": "pickList",
+      "label": "Auth Provider",
+      "defaultValue": "microsoft",
+      "required": false,
+      "helpMarkDown": "The authentication provider to use when logging in to the VS Code tunnel. Choose `microsoft` for Azure AD / Microsoft account (device code flow) or `github` for GitHub OAuth.",
+      "options": {
+        "microsoft": "Microsoft",
+        "github": "GitHub"
+      }
     }
   ],
   "outputVariables": [

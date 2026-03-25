@@ -27,6 +27,13 @@ parameters:
     displayName: 'Disable auth caching'
     type: boolean
     default: false
+  - name: authProvider
+    displayName: 'Auth provider (microsoft or github)'
+    type: string
+    default: 'microsoft'
+    values:
+      - microsoft
+      - github
 
 pool:
   vmImage: ubuntu-latest
@@ -53,3 +60,4 @@ steps:
       INPUT_CONNECTIONTIMEOUT: ${{ parameters.connectionTimeout }}
       INPUT_SESSIONTIMEOUT: ${{ parameters.sessionTimeout }}
       INPUT_NOCACHECLIAUTH: ${{ parameters.noCacheCliAuth }}
+      INPUT_AUTHPROVIDER: ${{ parameters.authProvider }}

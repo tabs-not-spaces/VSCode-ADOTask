@@ -20,15 +20,19 @@ steps:
       connectionTimeout: 5               # optional — minutes, default 5
       sessionTimeout: 60                 # optional — minutes, default 60
       noCacheCliAuth: false              # optional — default false
+      authProvider: microsoft            # optional — 'microsoft' (default) or 'github'
 ```
 
-On first run, the task will print a link in the pipeline log for **Microsoft account (Azure AD) device code login**.  Open the link, sign in, and then access the VS Code instance via your browser or the VS Code desktop app using **Remote Tunnels: Connect to Tunnel** from the Command Palette.
+On first run, the task will print a link in the pipeline log for device code login.  Open the link, sign in, and then access the VS Code instance via your browser or the VS Code desktop app using **Remote Tunnels: Connect to Tunnel** from the Command Palette.
 
 ---
 
 ## Authentication
 
-This task authenticates the VS Code CLI with a **Microsoft account**, which is appropriate for Azure DevOps environments (unlike the GitHub account used by the original GitHub Action).
+The task supports two authentication providers for the VS Code CLI, selectable via the `authProvider` input:
+
+- **`microsoft`** (default) — Azure AD / Microsoft account device code flow. Appropriate for Azure DevOps environments.
+- **`github`** — GitHub OAuth flow. Use this if you prefer to authenticate with your GitHub account.
 
 On subsequent runs with `noCacheCliAuth: false` (the default), the auth token is stored in a local directory on the agent and reused, so device-code login is only required when the token expires.  Set `noCacheCliAuth: true` for a fresh auth on every run (more secure).
 
@@ -44,6 +48,7 @@ On subsequent runs with `noCacheCliAuth: false` (the default), the auth token is
 | `connectionTimeout` | No | `5` | Minutes to wait for an initial connection before terminating. |
 | `sessionTimeout` | No | `60` | Minutes after the first connection before the tunnel is terminated. |
 | `noCacheCliAuth` | No | `false` | Disable caching of tunnel auth tokens on the agent. |
+| `authProvider` | No | `microsoft` | Authentication provider: `microsoft` (Azure AD device code) or `github` (GitHub OAuth). |
 
 ---
 
