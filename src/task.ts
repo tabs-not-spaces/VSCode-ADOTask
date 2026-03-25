@@ -88,8 +88,12 @@ async function main() {
                 }
 
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                  const first = parsed[0] as Record<string, unknown>;
-                  resolve(String(first?.version || first?.name || '') || '');
+                  const first = parsed[0] as Record<string, unknown> | string;
+                  if (typeof first === 'string') {
+                    resolve(first);
+                  } else {
+                    resolve(String(first?.version || first?.name || '') || '');
+                  }
                 } else if (typeof parsed === 'object' && parsed !== null) {
                   const obj = parsed as Record<string, unknown>;
                   resolve(String(obj.version || obj.name || '') || '');
