@@ -36,11 +36,7 @@
     },
     "files": [
         {
-            "path": "task.json",
-            "addressable": true
-        },
-        {
-            "path": "dist",
+            "path": "VSCodeTunnel",
             "addressable": true
         },
         {
@@ -60,7 +56,7 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "."
+                "name": "VSCodeTunnel"
             }
         }
     ]
