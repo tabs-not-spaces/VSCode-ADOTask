@@ -9,7 +9,7 @@ import { exit } from 'node:process';
 
 async function main() {
   try {
-    const tunnelName = task.getInput('tunnelName') || 'ado-pipeline-tunnel';
+    const tunnelName = (task.getInput('tunnelName') || 'ado-pipeline-tunnel').toLowerCase().replace(/\s+/g, '-');
 
     task.debug(`Starting VS Code Tunnel: ${tunnelName}. Enable Debug logging to see more detail on the process.`);
 
